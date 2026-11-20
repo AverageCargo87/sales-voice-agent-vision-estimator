@@ -1,0 +1,36 @@
+{
+  "name": "sales-voice-agent-vision-estimator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI sales suite for an Eastern Mediterranean steel-frame home builder: a trilingual ElevenLabs voice agent provisioned as code, an n8n + Google Sheets command center, and a drawing-to-estimate engine where the LLM extracts and code prices.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "setup": "tsx voice-agent/scripts/setup.ts",
+    "setup:dry": "tsx voice-agent/scripts/setup.ts --dry-run",
+    "preflight": "tsx voice-agent/scripts/00-preflight.ts",
+    "upload-kb": "tsx voice-agent/scripts/01-upload-kb.ts",
+    "create-tools": "tsx voice-agent/scripts/02-create-tools.ts",
+    "create-agent": "tsx voice-agent/scripts/03-create-agent.ts",
+    "attach-phone": "tsx voice-agent/scripts/04-attach-phone.ts",
+    "teardown": "tsx voice-agent/scripts/99-teardown.ts",
+    "state": "tsx voice-agent/scripts/state.ts",
+    "check:agent": "tsx voice-agent/scripts/check-config.ts",
+    "estimate": "tsx estimate/server.ts",
+    "eval": "tsx estimate/eval.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run typecheck && npm run check:agent && npm run eval"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "unpdf": "^1.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3"
+  }
+}

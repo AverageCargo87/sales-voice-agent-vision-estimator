@@ -1,0 +1,181 @@
+[
+  {
+    "name": "create_lead",
+    "description": "Creates a lead in the CRM (Google Sheets tab 'Leads') as soon as the conversation has at least a name and a phone number. Call it early, do not wait for the end of the call. Ask for consent to store the details first.",
+    "type": "webhook",
+    "response_timeout_secs": 25,
+    "api_schema": {
+      "url": "{{N8N_WEBHOOK_BASE}}/webhook/create-lead",
+      "method": "POST",
+      "request_headers": { "Content-Type": "application/json" },
+      "request_body_schema": {
+        "type": "object",
+        "required": ["full_name", "phone", "segment", "language"],
+        "properties": {
+          "full_name": { "type": "string", "description": "The caller's name as they gave it. First name only if that is all they said." },
+          "phone": { "type": "string", "description": "Phone in international format. If the caller gives no country code, assume the local country code unless they said they are elsewhere." },
+          "email": { "type": "string", "description": "Email if given, otherwise an empty string." },
+          "segment": {
+            "type": "string",
+            "enum": ["b2c_local", "b2c_expat", "landowner_antiparochi", "developer", "investor", "business_horeca", "complex_plot", "unknown"],
+            "description": "Segment identified in the first 1-2 minutes: b2c_local = local resident with a plot, b2c_expat = expat, landowner_antiparochi = landowner for a land-for-flats exchange, developer, investor in the company's own projects, business_horeca = hotels, cafes and other commercial, complex_plot = slope or hard-to-reach plot, unknown = not identified yet."
+          },
+          "language": { "type": "string", "enum": ["ru", "en", "el"], "description": "Conversation language: Russian, English or Greek." },
+          "location": { "type": "string", "description": "Where the plot is or where the caller lives (town, village or district). Empty string if not given." },
+          "budget_eur": { "type": "string", "description": "Budget as said, a range or an amount in euro as a string, e.g. '150000-200000', '300k+' or 'not given'." },
+          "plot_size_sqm": { "type": "string", "description": "Plot size in m2 if given, otherwise an empty string." },
+          "desired_size_sqm": { "type": "string", "description": "Desired house size in m2 if given, otherwise an empty string." },
+          "consent_given": { "type": "boolean", "description": "Whether the caller explicitly agreed to their details being stored." },
+          "notes": { "type": "string", "description": "Free notes worth knowing: triggers, worries, preferences, specific projects they asked about." }
+        }
+      }
+    }
+  },
+  {
+    "name": "book_consultation",
+    "description": "Books a free consultation with the partner architecture bureau. This is the agent's MAIN KPI: steer every conversation towards it. Writes a row to the Google Sheets tab 'Bookings' (a calendar event is the designed next step). Call it only once name, phone and preferred time are confirmed, and READ THE DATE AND TIME BACK to the caller before calling.",
+    "type": "webhook",
+    "response_timeout_secs": 25,
+    "api_schema": {
+      "url": "{{N8N_WEBHOOK_BASE}}/webhook/book-consultation",
+      "method": "POST",
+      "request_headers": { "Content-Type": "application/json" },
+      "request_body_schema": {
+        "type": "object",
+        "required": ["full_name", "phone", "preferred_datetime", "meeting_type"],
+        "properties": {
+          "full_name": { "type": "string", "description": "The caller's full name." },
+          "phone": { "type": "string", "description": "Phone in international format." },
+          "email": { "type": "string", "description": "Email, preferably collected so a calendar invite can be sent." },
+          "preferred_datetime": {
+            "type": "string",
+            "description": "ISO 8601 datetime in the Europe/Athens time zone, e.g. '2026-05-29T15:00:00+03:00'. Convert relative times ('tomorrow at 3') to an absolute date. If only a day is given, use 10:00."
+          },
+          "meeting_type": { "type": "string", "enum": ["online", "in_office"], "description": "online = video call, in_office = in person at the company office." },
+          "segment": {
+            "type": "string",
+            "enum": ["b2c_local", "b2c_expat", "landowner_antiparochi", "developer", "investor", "business_horeca", "complex_plot", "unknown"],
+            "description": "The caller's segment."
+          },
+          "project_brief": { "type": "string", "description": "A short brief for the architect: what the caller wants, which plot, budget and timeline." },
+          "language": { "type": "string", "enum": ["ru", "en", "el"], "description": "The caller's language: the architect runs the meeting in it." }
+        }
+      }
+    }
+  },
+  {
+    "name": "send_materials",
+    "description": "Sends materials by WhatsApp or email: company brochure, project catalogue, the land-for-flats tax guide, the 'Expandable House' concept. Use it when the caller asks for materials, or when they decline a meeting for now, to keep them warm.",
+    "type": "webhook",
+    "response_timeout_secs": 25,
+    "api_schema": {
+      "url": "{{N8N_WEBHOOK_BASE}}/webhook/send-materials",
+      "method": "POST",
+      "request_headers": { "Content-Type": "application/json" },
+      "request_body_schema": {
+        "type": "object",
+        "required": ["full_name", "channel", "recipient", "materials", "language"],
+        "properties": {
+          "full_name": { "type": "string", "description": "The caller's name, for the greeting in the message." },
+          "channel": { "type": "string", "enum": ["whatsapp", "email"], "description": "Delivery channel. WhatsApp is preferred in this market." },
+          "recipient": { "type": "string", "description": "Phone in international format for whatsapp, or the email address for email." },
+          "materials": {
+            "type": "array",
+            "description": "Which materials to send; several are allowed.",
+            "items": {
+              "type": "string",
+              "description": "Material type: company_brochure, projects_catalog, antiparochi_tax_guide, expandable_house_concept, premium_acoustics_pack, investor_deck.",
+              "enum": ["company_brochure", "projects_catalog", "antiparochi_tax_guide", "expandable_house_concept", "premium_acoustics_pack", "investor_deck"]
+            }
+          },
+          "language": { "type": "string", "enum": ["ru", "en", "el"], "description": "Language of the materials." }
+        }
+      }
+    }
+  },
+  {
+    "name": "transfer_to_human",
+    "description": "Warm-transfers the call to a person. ONLY when the caller insists on a human, an investment request is above EUR 1M, there is a legal dispute or a complaint, or the call looks fraudulent. Never offer a transfer unprompted.",
+    "type": "webhook",
+    "response_timeout_secs": 28,
+    "api_schema": {
+      "url": "{{N8N_WEBHOOK_BASE}}/webhook/transfer-to-human",
+      "method": "POST",
+      "request_headers": { "Content-Type": "application/json" },
+      "request_body_schema": {
+        "type": "object",
+        "required": ["target", "reason", "conversation_summary"],
+        "properties": {
+          "target": {
+            "type": "string",
+            "enum": ["owner", "investment_director", "architect"],
+            "description": "Who takes the call: owner = {{OWNER_NAME}} (general and premium questions), investment_director = investments and land-for-flats deals above EUR 500k, architect = complex technical or design questions."
+          },
+          "reason": { "type": "string", "description": "Short reason for the transfer: 'caller insists', 'EUR 2M investment', 'quality complaint' and so on." },
+          "conversation_summary": { "type": "string", "description": "What was said so far, so the person can pick up without asking the caller again." },
+          "caller_phone": { "type": "string", "description": "The caller's number, for a callback if the transfer fails." }
+        }
+      }
+    }
+  },
+  {
+    "name": "notify_owner_telegram",
+    "description": "Sends {{OWNER_NAME}} an instant Telegram alert about a HOT lead. ONLY for qualified hot leads: an investment of EUR 500k or more; a landowner with a specific plot ready for a land-for-flats deal; a developer buying 3+ shells; a caller who said they want to sign this week. Do not overuse it.",
+    "type": "webhook",
+    "response_timeout_secs": 25,
+    "api_schema": {
+      "url": "{{N8N_WEBHOOK_BASE}}/webhook/notify-owner",
+      "method": "POST",
+      "request_headers": { "Content-Type": "application/json" },
+      "request_body_schema": {
+        "type": "object",
+        "required": ["lead_name", "urgency", "summary", "callback_phone"],
+        "properties": {
+          "lead_name": { "type": "string", "description": "The hot lead's name." },
+          "segment": {
+            "type": "string",
+            "description": "The hot lead's segment.",
+            "enum": ["b2c_local", "b2c_expat", "landowner_antiparochi", "developer", "investor", "business_horeca", "complex_plot", "unknown"]
+          },
+          "urgency": { "type": "string", "enum": ["hot", "very_hot", "emergency"], "description": "hot = call back today, very_hot = within the hour, emergency = ready to sign now." },
+          "summary": { "type": "string", "description": "What the caller said, the request, the potential deal size and the urgency trigger." },
+          "callback_phone": { "type": "string", "description": "Phone for the owner's callback." },
+          "language": { "type": "string", "enum": ["ru", "en", "el"], "description": "The caller's language, so the callback happens in it." }
+        }
+      }
+    }
+  },
+  {
+    "name": "end_call_summary",
+    "description": "Closes the call: sends the full summary and metadata to the Google Sheets tab 'Calls'. ALWAYS the last step before saying goodbye, even for spam. The CRM and the analytics depend on it.",
+    "type": "webhook",
+    "response_timeout_secs": 25,
+    "api_schema": {
+      "url": "{{N8N_WEBHOOK_BASE}}/webhook/end-call-summary",
+      "method": "POST",
+      "request_headers": { "Content-Type": "application/json" },
+      "request_body_schema": {
+        "type": "object",
+        "required": ["outcome", "summary"],
+        "properties": {
+          "full_name": { "type": "string", "description": "The caller's name if given." },
+          "phone": { "type": "string", "description": "Phone if collected (or the caller ID)." },
+          "segment": {
+            "type": "string",
+            "description": "Segment identified during the call.",
+            "enum": ["b2c_local", "b2c_expat", "landowner_antiparochi", "developer", "investor", "business_horeca", "complex_plot", "unknown"]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": ["qualified_booked", "qualified_followup", "qualified_materials_sent", "disqualified", "callback_needed", "transfer_completed", "spam_or_misdialed"],
+            "description": "Call outcome: qualified_booked = consultation booked; qualified_followup = follow up in 2-3 days; qualified_materials_sent = materials sent, no booking; disqualified = not a target customer; callback_needed = promised to call back when ready; transfer_completed = handed to a person; spam_or_misdialed = spam or wrong number."
+          },
+          "summary": { "type": "string", "description": "Full summary: the request, the arguments that worked, objections, agreements and the next step. 3-7 sentences." },
+          "language": { "type": "string", "description": "Conversation language.", "enum": ["ru", "en", "el"] },
+          "next_action": { "type": "string", "description": "What happens next: 'architect calls at 15:00', 'materials sent, follow up in 3 days', 'handed to the owner' and so on." },
+          "duration_minutes": { "type": "number", "description": "Call length in minutes, rounded." }
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "id": "olive-grove-demo",
+    "file": "demo-house.pdf",
+    "area": 186.4,
+    "floors": 2,
+    "units": 1,
+    "areaTolPct": 5
+  }
+]

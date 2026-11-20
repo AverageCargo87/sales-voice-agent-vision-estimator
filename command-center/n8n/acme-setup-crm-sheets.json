@@ -1,0 +1,177 @@
+{
+  "name": "Acme - Setup CRM Sheets",
+  "nodes": [
+    {
+      "id": "05400040-ac21-4999-9295-4469e097dfc7",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "5e91c623-afe7-40e0-a47f-02161963c4ca",
+      "name": "Create Leads tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "<DOCUMENTID>"
+        },
+        "title": "Leads"
+      }
+    },
+    {
+      "id": "37a8c69c-c0ef-4a6e-bf63-c728eb340f98",
+      "name": "Create Calls tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        0
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "<DOCUMENTID>"
+        },
+        "title": "Calls"
+      }
+    },
+    {
+      "id": "913abfe1-7b50-43c1-8cb6-bae5d18e7d9a",
+      "name": "Create Bookings tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        0
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "<DOCUMENTID>"
+        },
+        "title": "Bookings"
+      }
+    },
+    {
+      "id": "7e326cbd-6092-4653-90af-c47b0655e644",
+      "name": "Create Materials_Sent tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        0
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "<DOCUMENTID>"
+        },
+        "title": "Materials_Sent"
+      }
+    },
+    {
+      "id": "8bab5b7b-fd77-4205-9ea6-62128999b90b",
+      "name": "Create Hot_Alerts tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        0
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "<DOCUMENTID>"
+        },
+        "title": "Hot_Alerts"
+      }
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Create Leads tab",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Leads tab": {
+      "main": [
+        [
+          {
+            "node": "Create Calls tab",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Calls tab": {
+      "main": [
+        [
+          {
+            "node": "Create Bookings tab",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Bookings tab": {
+      "main": [
+        [
+          {
+            "node": "Create Materials_Sent tab",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Materials_Sent tab": {
+      "main": [
+        [
+          {
+            "node": "Create Hot_Alerts tab",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  }
+}

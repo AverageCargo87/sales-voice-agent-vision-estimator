@@ -1,0 +1,28 @@
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# Provisioning state written by the voice-agent scripts (holds service-side IDs)
+state.json
+.dry-run/
+
+# Private inputs: the production knowledge base and real drawings for `npm run eval -- extract`
+voice-agent/knowledge_base.md
+estimate/fixtures/extract-cases.local.json
+estimate/fixtures/private/
+
+# Node
+node_modules/
+npm-debug.log*
+*.tsbuildinfo
+dist/
+
+# Local scratch
+.work/
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

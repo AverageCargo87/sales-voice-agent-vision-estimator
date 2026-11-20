@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acme Steel Homes - House cost estimate</title>
+<style>
+  :root{
+    --paper:#F5F3EF; --paper-2:#EFEBE3; --ink:#1F2933; --ink-soft:#4A555F; --ink-faint:#8A929B;
+    --steel:#2C6E7F; --steel-deep:#225764; --steel-tint:#E3EDEF; --sand:#C9A227; --sand-soft:#F0E6C8;
+    --line:#DAD4C8; --line-soft:#E7E2D8; --white:#FCFBF8; --mid:#B8860B;
+    --shadow:0 1px 2px rgba(31,41,51,.04), 0 8px 24px rgba(31,41,51,.06);
+    --shadow-lg:0 4px 12px rgba(31,41,51,.08), 0 24px 48px rgba(31,41,51,.10);
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,Menlo,Consolas,monospace;
+    --r:14px; --r-sm:9px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:var(--sans);color:var(--ink);background:var(--paper);
+    background-image:radial-gradient(1200px 600px at 85% -10%, rgba(44,110,127,.06), transparent 60%),
+      radial-gradient(900px 500px at 0% 110%, rgba(201,162,39,.06), transparent 55%);
+    background-attachment:fixed;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:0 20px}
+
+  header{padding:32px 0 6px}
+  .brandrow{display:flex;align-items:center;gap:12px}
+  .mark{width:34px;height:34px;flex:0 0 auto}
+  .brand{font-family:var(--serif);font-size:18px;letter-spacing:.02em;font-weight:700}
+  .brand .sub{display:block;font-family:var(--sans);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;margin-top:1px}
+  h1{font-family:var(--serif);font-weight:700;font-size:clamp(28px,6vw,42px);line-height:1.05;letter-spacing:-.01em;margin:24px 0 10px}
+  .lead{font-size:16px;color:var(--ink-soft);max-width:58ch}
+
+  .honest{display:flex;gap:12px;align-items:flex-start;margin:20px 0 0;padding:13px 16px;background:var(--sand-soft);
+    border:1px solid #E4D49A;border-left:3px solid var(--sand);border-radius:var(--r-sm);font-size:13.5px;color:#6b5a16}
+  .honest svg{flex:0 0 auto;margin-top:1px}
+  .modebar{display:none;margin:12px 0 0;padding:11px 15px;background:var(--steel-tint);border:1px solid #CFE0E3;border-left:3px solid var(--steel);
+    border-radius:var(--r-sm);font-size:13px;color:var(--steel-deep)}
+  .modebar.show{display:block;animation:fade .3s ease}
+
+  .feed{display:flex;flex-direction:column;gap:18px;margin:24px 0 36px}
+  .card{background:var(--white);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:22px}
+  .hidden{display:none !important}
+  .sectlabel{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .sectlabel .n{color:var(--steel)}
+
+  .drop{border:2px dashed var(--line);border-radius:var(--r-sm);padding:26px 18px;text-align:center;cursor:pointer;
+    background:linear-gradient(180deg, var(--paper-2), transparent);transition:border-color .2s,background .2s,transform .15s}
+  .drop:hover,.drop.drag{border-color:var(--steel);background:var(--steel-tint)}
+  .drop .ic{color:var(--steel);margin-bottom:8px}
+  .drop .t{font-weight:600;font-size:14.5px}
+  .drop .s{font-size:12.5px;color:var(--ink-faint);margin-top:4px}
+
+  .progress{display:none;margin-top:14px;padding:12px 14px;background:var(--steel-tint);border:1px solid #CFE0E3;border-radius:var(--r-sm)}
+  .progress.show{display:block;animation:fade .3s ease}
+  .pstep{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-faint);padding:3px 0}
+  .pstep .dot{width:14px;height:14px;border-radius:50%;border:2px solid #b9cfd4;flex:0 0 auto}
+  .pstep.active{color:var(--steel-deep);font-weight:600}
+  .pstep.active .dot{border-color:rgba(44,110,127,.25);border-top-color:var(--steel);animation:spin .8s linear infinite}
+  .pstep.done{color:var(--steel-deep)}
+  .pstep.done .dot{background:var(--steel);border-color:var(--steel)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .errmsg{display:none;margin-top:14px;padding:12px 14px;font-size:13px;line-height:1.45;background:#FBEAE6;border:1px solid #E8C4BA;border-left:3px solid #C0552F;border-radius:var(--r-sm);color:#8a3b1f}
+  .errmsg.show{display:block;animation:fade .3s ease}
+  .errmsg code{font-family:var(--mono);font-size:11.5px;background:var(--white);border:1px solid #E8C4BA;border-radius:5px;padding:1px 5px}
+
+  .ex-row{margin-top:16px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+  .ex-lead{font-size:12px;color:var(--ink-faint);margin-right:2px}
+  .exchip{cursor:pointer;font-family:var(--sans);background:transparent;border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12px;
+    font-weight:600;color:var(--ink-soft);transition:all .15s;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+  .exchip:hover,.exchip.active{border-color:var(--steel);color:var(--steel-deep);background:var(--steel-tint)}
+  .exchip .dim{font-weight:500;color:var(--ink-faint);font-size:11px}
+
+  .proj-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
+  .proj-title{font-family:var(--serif);font-size:20px;line-height:1.2;font-weight:700;word-break:break-word}
+  .proj-src-tag{font-size:12px;color:var(--ink-faint);margin-top:3px}
+  .badge{font-size:11px;font-weight:700;padding:4px 11px;border-radius:999px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+  .badge.read{background:var(--steel-tint);color:var(--steel-deep)}
+  .badge.example{background:var(--sand-soft);color:#8a6d0c}
+  .badge.manual{background:var(--paper-2);color:var(--ink-soft)}
+
+  .ctl > label{display:block;font-size:12.5px;font-weight:700;margin-bottom:9px}
+  .ctl-note{font-size:12px;color:var(--ink-faint);font-weight:500}
+  .arow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  input[type=number]{width:104px;font-family:var(--sans);font-size:16px;font-weight:600;color:var(--ink);border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 11px;background:var(--white)}
+  input[type=number]:focus{outline:none;border-color:var(--steel);box-shadow:0 0 0 3px rgba(44,110,127,.12)}
+  .unit{font-size:13px;color:var(--ink-faint);font-weight:600}
+  input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:120px;height:5px;border-radius:5px;background:var(--line);outline:none;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--steel);border:3px solid var(--white);box-shadow:0 1px 4px rgba(31,41,51,.25);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--steel);border:3px solid var(--white);cursor:pointer}
+
+  .proj-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px 18px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line-soft)}
+  .mk{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);font-weight:700}
+  .mv{font-size:14px;font-weight:600;margin-top:2px}
+  .acc-pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+  .acc-pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+  .acc-pill.hi{background:var(--steel-tint);color:var(--steel-deep)}
+  .acc-pill.mid{background:#F6EAC8;color:#8a6d0c}
+  .acc-pill.lo{background:#FBEAE6;color:#8a3b1f}
+  .proj-source{font-size:12px;color:var(--ink-faint);margin-top:14px;line-height:1.45}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .chip{font-size:11.5px;background:var(--paper-2);border:1px solid var(--line-soft);color:var(--ink-soft);padding:3px 9px;border-radius:999px}
+  .chip.extra{background:var(--sand-soft);border-color:#E4D49A;color:#8a6d0c}
+
+  .seg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px}
+  .seg button{cursor:pointer;font-family:var(--sans);text-align:left;background:var(--white);border:1px solid var(--line);border-radius:var(--r-sm);padding:11px 11px 12px;transition:all .16s;color:var(--ink)}
+  .seg button:hover{border-color:var(--steel);transform:translateY(-1px)}
+  .seg button.on{border-color:var(--steel);background:var(--steel);color:var(--white);box-shadow:var(--shadow)}
+  .seg button.on .sd{color:rgba(255,255,255,.82)}
+  .seg .st{font-weight:700;font-size:12.5px;line-height:1.15}
+  .seg .sd{font-size:10.5px;color:var(--ink-faint);margin-top:5px;line-height:1.3}
+  @media(max-width:560px){.seg{grid-template-columns:1fr}}
+
+  .headline{padding:18px 0 6px;border-top:1px solid var(--line-soft)}
+  .res-cap{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;margin-bottom:4px}
+  .total{font-family:var(--serif);font-weight:700;font-size:clamp(28px,7vw,42px);letter-spacing:-.015em;line-height:1.05;margin:4px 0 2px}
+  .total .cur{color:var(--steel);font-size:.62em;vertical-align:.04em}
+  .rate{font-size:13.5px;color:var(--ink-soft)}
+  .rate b{color:var(--ink)}
+  .approx{font-size:12px;color:var(--ink-faint);font-style:italic;margin-top:2px}
+
+  .tog-group{margin-top:18px;padding-top:16px;border-top:1px solid var(--line-soft)}
+  .tog-lab{font-size:12.5px;font-weight:700;margin-bottom:4px}
+  .ph{font-size:10px;font-weight:700;color:var(--sand);letter-spacing:.05em}
+  .tog{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line-soft)}
+  .tog:last-of-type{border-bottom:none}
+  .tog .tl{font-size:13.5px;font-weight:600}
+  .tog .tl small{display:block;font-weight:500;font-size:11px;color:var(--ink-faint);margin-top:1px}
+  .switch{position:relative;width:44px;height:25px;flex:0 0 auto}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;inset:0;background:var(--line);border-radius:999px;transition:.2s;cursor:pointer}
+  .slider:before{content:"";position:absolute;height:19px;width:19px;left:3px;top:3px;background:var(--white);border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .switch input:checked + .slider{background:var(--steel)}
+  .switch input:checked + .slider:before{transform:translateX(19px)}
+
+  .compare{margin-top:18px;padding-top:16px;border-top:1px solid var(--line-soft)}
+  .compare .l,.bd-toggle{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);font-weight:700}
+  .compare .l{margin-bottom:10px}
+  .cmp-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-soft)}
+  .cmp-row:last-child{border-bottom:none}
+  .cmp-row .cn{font-size:13px;font-weight:600}
+  .cmp-row .cn small{display:block;font-weight:500;font-size:11px;color:var(--ink-faint);margin-top:1px}
+  .cmp-row .cv{font-size:13.5px;font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+  .cmp-row.active{background:var(--steel-tint);margin:0 -10px;padding-left:10px;padding-right:10px;border-radius:7px;border-bottom-color:transparent}
+
+  .breakdown{margin-top:16px;border-top:1px solid var(--line-soft);padding-top:6px}
+  .bd-toggle{width:100%;cursor:pointer;background:none;border:none;font-family:var(--sans);display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0}
+  .bd-toggle:hover{color:var(--steel-deep)}
+  .bd-toggle .caret{transition:transform .2s}
+  .bd-toggle.open .caret{transform:rotate(180deg)}
+  .bd-body{display:none;padding-top:6px}
+  .bd-body.open{display:block;animation:fade .3s ease}
+  .bar{margin-bottom:11px}
+  .bar .br{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px;gap:10px}
+  .bar .bn{font-weight:600}
+  .bar .bv{color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .bar .bv b{color:var(--ink)}
+  .track{height:8px;background:var(--paper-2);border-radius:6px;overflow:hidden}
+  .fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--steel),var(--steel-deep));width:0;transition:width .55s cubic-bezier(.22,.61,.36,1)}
+  .bar:nth-child(even) .fill{background:linear-gradient(90deg,#3a7e8f,var(--steel))}
+  .bd-note{font-size:11.5px;color:var(--ink-faint);margin-top:4px;line-height:1.4}
+  .bd-detail{font-size:11.5px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45;padding:7px 10px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:7px}
+  .bd-disc{display:block;margin-top:3px;color:var(--mid);font-style:italic;font-size:11px}
+  .tech{margin-top:18px;padding:13px 14px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:var(--r-sm);font-size:12.5px;color:var(--ink-soft)}
+  .tech b{color:var(--ink)}
+  .foot-notes{font-size:11.5px;color:var(--ink-faint);margin-top:12px}
+
+  .narr-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .narr-av{width:34px;height:34px;border-radius:50%;flex:0 0 auto;background:linear-gradient(180deg,#327d8f,var(--steel-deep));display:flex;align-items:center;justify-content:center;color:var(--white)}
+  .nn{font-weight:700;font-size:14px}
+  .nr{font-size:11px;color:var(--ink-faint)}
+  .nbody{font-size:14px;line-height:1.62;color:var(--ink-soft)}
+
+  .trace{list-style:none;margin:0;padding:0;border-left:2px solid var(--line);margin-left:6px}
+  .trace li{position:relative;padding:0 0 12px 18px;font-size:12.5px;color:var(--ink-soft)}
+  .trace li:last-child{padding-bottom:0}
+  .trace li:before{content:"";position:absolute;left:-6px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--white);border:2px solid var(--steel)}
+  .trace li.code:before{background:var(--steel)}
+  .trace b{color:var(--ink)}
+  .trace code{font-family:var(--mono);font-size:11.5px;background:var(--paper-2);border:1px solid var(--line-soft);border-radius:5px;padding:0 5px}
+  .trace .who{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--ink-faint);margin-right:6px}
+
+  .cta{width:100%;cursor:pointer;border:none;font-family:var(--sans);font-size:15.5px;font-weight:700;color:var(--white);
+    background:linear-gradient(180deg,#327d8f,var(--steel-deep));border-radius:var(--r-sm);padding:17px 18px;display:flex;align-items:center;justify-content:center;gap:10px;
+    box-shadow:0 4px 14px rgba(44,110,127,.32);transition:transform .14s,box-shadow .14s}
+  .cta:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(44,110,127,.42)}
+
+  footer{border-top:1px solid var(--line);padding:20px 0 44px;font-size:11.5px;color:var(--ink-faint);line-height:1.5}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .reveal{animation:fade .4s ease}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(31,41,51,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:22px;z-index:50}
+  .modal-bg.show{display:flex;animation:fade .25s ease}
+  .modal{background:var(--white);border-radius:var(--r);max-width:420px;width:100%;padding:26px;box-shadow:var(--shadow-lg);text-align:center}
+  .modal h3{font-family:var(--serif);font-size:22px;margin-bottom:10px}
+  .modal p{font-size:14px;color:var(--ink-soft);margin-bottom:20px}
+  .modal .x{cursor:pointer;border:1px solid var(--line);background:var(--white);border-radius:var(--r-sm);padding:11px 22px;font-family:var(--sans);font-weight:700;font-size:14px;color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brandrow">
+      <svg class="mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="2" y="2" width="36" height="36" rx="8" fill="#2C6E7F"/>
+        <path d="M10 27V13l10-6 10 6v14" stroke="#F5F3EF" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M10 27h20" stroke="#C9A227" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M15 27v-7h10v7" stroke="#F5F3EF" stroke-width="2" stroke-linejoin="round"/>
+      </svg>
+      <div class="brand">Acme Steel Homes<span class="sub">LGSF homes · Eastern Mediterranean</span></div>
+    </div>
+    <h1>What will your house cost?</h1>
+    <p class="lead">Upload a drawing. Claude reads the plans; the price model, not the AI, computes every euro.</p>
+    <div class="honest">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div>An <b>indicative estimate</b> (±), not a final price. This public build runs an <b>illustrative price model</b>: production price lists are private.</div>
+    </div>
+    <div class="modebar" id="modebar"></div>
+  </header>
+
+  <div class="feed">
+
+    <!-- 1. UPLOAD -->
+    <div class="card">
+      <div class="sectlabel"><span class="n">01</span> Your drawing</div>
+      <div class="drop" id="drop">
+        <div class="ic"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg></div>
+        <div class="t">Drop a drawing or a photo of the plans</div>
+        <div class="s">PDF · PNG · JPG · WebP, or click to choose</div>
+      </div>
+      <input type="file" id="file" hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,application/pdf,image/png,image/jpeg,image/webp,image/gif">
+      <div class="progress" id="progress">
+        <div class="pstep" data-step="0"><span class="dot"></span>Checking the file (type, size, rate limit)</div>
+        <div class="pstep" data-step="1"><span class="dot"></span>Claude reads the drawing: area, storeys, rooms</div>
+        <div class="pstep" data-step="2"><span class="dot"></span>Pricing code runs three packages</div>
+        <div class="pstep" data-step="3"><span class="dot"></span>Writing the note, auditing its prices</div>
+      </div>
+      <div class="errmsg" id="errmsg"></div>
+      <div class="ex-row">
+        <span class="ex-lead">No drawing at hand?</span>
+        <button class="exchip" id="demoBtn">Run the demo drawing <span class="dim">fictional, 186.4 m²</span></button>
+        <a class="exchip" id="demoPdf" href="/demo-house.pdf" download>Download it</a>
+      </div>
+    </div>
+
+    <!-- 2. PROJECT -->
+    <div class="card hidden" id="projCard">
+      <div class="sectlabel"><span class="n">02</span> Your project</div>
+      <div class="proj-head">
+        <div>
+          <div class="proj-title" id="projTitle">-</div>
+          <div class="proj-src-tag" id="projSrcTag"></div>
+        </div>
+        <span class="badge read" id="projBadge"><span class="dot"></span><span id="projBadgeTxt">read by Claude</span></span>
+      </div>
+      <div class="ctl">
+        <label for="areaNum">Floor area, m² <span class="ctl-note">(you can adjust it)</span></label>
+        <div class="arow">
+          <input type="number" id="areaNum" min="25" max="600" step="0.5" value="150">
+          <span class="unit">m²</span>
+          <input type="range" id="areaRange" min="25" max="600" step="0.5" value="150">
+        </div>
+      </div>
+      <div class="proj-meta" id="projMeta"></div>
+      <div class="proj-source" id="projSource"></div>
+      <div class="chips" id="projChips"></div>
+    </div>
+
+    <!-- 3. COST -->
+    <div class="card hidden" id="costCard">
+      <div class="sectlabel"><span class="n">03</span> Cost</div>
+      <div class="seg" id="seg">
+        <button data-pkg="base"><div class="st">Frame Package</div><div class="sd">G550 frame + 40 cm raft + utilities</div></button>
+        <button data-pkg="shell"><div class="st">Shell Package</div><div class="sd">Warm shell: frame, foam concrete, facade, windows, roof</div></button>
+        <button data-pkg="turnkey" class="on"><div class="st">Turnkey Package</div><div class="sd">Move-in ready: MEP, finishes, kitchen</div></button>
+      </div>
+      <div class="headline">
+        <div class="res-cap">Indicative cost</div>
+        <div class="total" id="total">- <span class="cur">€</span></div>
+        <div class="rate" id="rate">-</div>
+        <div class="approx" id="approx"></div>
+      </div>
+      <div class="tog-group">
+        <div class="tog-lab">Extras <span class="ph">· not in any package</span></div>
+        <div class="tog">
+          <div class="tl">Carport<small id="carportPrice"></small></div>
+          <label class="switch"><input type="checkbox" id="carport"><span class="slider"></span></label>
+        </div>
+        <div class="tog">
+          <div class="tl">Septic tank<small id="septicPrice"></small></div>
+          <label class="switch"><input type="checkbox" id="septic"><span class="slider"></span></label>
+        </div>
+      </div>
+      <div class="compare">
+        <div class="l">Packages compared</div>
+        <div id="cmpRows"></div>
+      </div>
+      <div class="breakdown">
+        <button class="bd-toggle" id="bdToggle" aria-expanded="false">
+          <span>Breakdown by category</span>
+          <svg class="caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="bd-body" id="bdBody">
+          <div id="bars"></div>
+          <div class="bd-note">Category shares come from a real bill of quantities in production; this build uses illustrative shares. Foundation, frame and facade show the physical quantities behind them.</div>
+        </div>
+      </div>
+      <div class="tech"><b>Technology:</b> G550 light steel frame + foam concrete poured into the walls + mineral facade boards + warm windows + heat-recovery ventilation.</div>
+      <div class="foot-notes">Prices exclude VAT. Indicative estimate.</div>
+    </div>
+
+    <!-- 4. NOTE -->
+    <div class="card hidden" id="narrCard">
+      <div class="narr-head">
+        <div class="narr-av"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+        <div><div class="nn">Eric's note</div><div class="nr" id="narrBy">Acme Steel Homes estimator · Claude</div></div>
+      </div>
+      <div class="nbody" id="narrBody"></div>
+    </div>
+
+    <!-- 5. TRACE -->
+    <div class="card hidden" id="traceCard">
+      <div class="sectlabel"><span class="n">04</span> How this estimate was made</div>
+      <ul class="trace" id="trace"></ul>
+    </div>
+
+    <button class="cta hidden" id="cta">
+      Book a free consultation with the architect
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+
+  <footer>
+    Acme Steel Homes AI sales suite: drawing-to-estimate engine. The language model extracts geometry through a strict tool schema; deterministic code prices it.
+    Numbers on this page come from an illustrative model with the production structure; production rates are private.
+  </footer>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3>Book a consultation</h3>
+    <p>In production this opens the booking form, the same booking the voice agent makes through its <code>book_consultation</code> tool.</p>
+    <button class="x" id="modalX">Got it</button>
+  </div>
+</div>
+
+<!-- Inline copy of the price model (estimate/pricing.ts + costing.ts) for opening this page without a server.
+     `npm run eval` fails if it drifts from the code, in values AND in behaviour. -->
+<script type="application/json" id="price-model">
+{
+  "base_points": [[48, 540], [64, 520], [82, 495], [118, 410], [142, 385], [176, 360]],
+  "turnkey_points": [[48, 1880], [210, 1490]],
+  "shell_points": [[48, 1390], [210, 1060]],
+  "package_band": 0.07,
+  "base_band": 0.04,
+  "options": { "carport": 5200, "septic": 4300 },
+  "breakdown": {
+    "turnkey": [
+      { "key": "foundation", "name": "Foundation", "pct": 9 },
+      { "key": "frame", "name": "Steel frame + floor slab", "pct": 18 },
+      { "key": "facade", "name": "Insulation + mineral facade", "pct": 21 },
+      { "key": "roof", "name": "Roof", "pct": 7 },
+      { "key": "windows", "name": "Windows and doors", "pct": 9 },
+      { "key": "warmfloor", "name": "Underfloor heating", "pct": 5 },
+      { "key": "finish", "name": "Floors, ceilings, wall finishes", "pct": 11 },
+      { "key": "mep", "name": "Plumbing + electrics", "pct": 8 },
+      { "key": "hvac", "name": "Climate + hot water (heat recovery)", "pct": 4 },
+      { "key": "furniture", "name": "Built-in furniture", "pct": 5 },
+      { "key": "outdoor", "name": "Outdoor works", "pct": 3 }
+    ],
+    "shell": [
+      { "key": "foundation", "name": "Foundation", "pct": 12.5 },
+      { "key": "frame", "name": "Steel frame + floor slab", "pct": 26 },
+      { "key": "facade", "name": "Insulation + mineral facade", "pct": 31 },
+      { "key": "roof", "name": "Roof", "pct": 10 },
+      { "key": "windows", "name": "Windows and doors", "pct": 12 },
+      { "key": "ceilings", "name": "Ceilings", "pct": 1.5 },
+      { "key": "rough_mep", "name": "Rough-in MEP", "pct": 7 }
+    ],
+    "base": [
+      { "key": "foundation", "name": "Foundation", "pct": 34 },
+      { "key": "frame", "name": "G550 steel frame", "pct": 58 },
+      { "key": "slab_utils", "name": "Floor slab / utility connections", "pct": 8 }
+    ]
+  },
+  "foundation": { "slab": 0.4, "footing": 1.15, "grade": "C25/30", "rebar_norm": 90 },
+  "steel": { "kg_m2_at_2_floors": 48, "joist_kg_m2": 12, "grade": "G550" },
+  "facade": { "thickness_mm": 100, "fire_class": "A1", "wall_h": 3, "aspect": 1.4, "openings": 0.85 },
+  "limits": { "area_min": 25, "area_max": 1200 },
+  "disclaimer": "Indicative: needs current market prices and a design to local codes."
+}
+</script>
+
+<!-- Inline copy of estimate/fixtures/demo-house.json (extraction only), for the no-server fallback. Checked by eval. -->
+<script type="application/json" id="demo-fixture">
+{
+  "label": "Olive Grove House (fictional demo drawing)",
+  "extraction": {
+    "area_m2": 186.4,
+    "floors": 2,
+    "units": 1,
+    "area_source": "Floor totals printed on the plans: ground floor 98.6 m2 + first floor 87.8 m2",
+    "input_quality": "clean_cad",
+    "confidence": 0.93,
+    "rooms": ["open-plan kitchen and living room", "4 bedrooms", "3 bathrooms", "study", "utility room", "guest WC"],
+    "extras": ["covered terrace ~24 m2", "two balconies", "swimming pool (not priced)"],
+    "has_garage": false
+  }
+}
+</script>
+
+<script>
+"use strict";
+var M = JSON.parse(document.getElementById("price-model").textContent);
+var DEMO_FIXTURE = JSON.parse(document.getElementById("demo-fixture").textContent);
+
+/* BEGIN UI PRICE MODEL (pure functions of M; eval.ts runs this block in a sandbox against pricing.ts) */
+function normalizeFloors(f){ var n = isFinite(f) ? Math.round(f) : 1; return Math.min(4, Math.max(1, n)); }
+function interpRate(area, pts){
+  if(area <= pts[0][0]) return pts[0][1];
+  if(area >= pts[pts.length-1][0]) return pts[pts.length-1][1];
+  for(var i=0;i<pts.length-1;i++){
+    var a0=pts[i][0], a1=pts[i+1][0];
+    if(area>=a0 && area<=a1){ var t=(area-a0)/(a1-a0); return pts[i][1] + t*(pts[i+1][1]-pts[i][1]); }
+  }
+  return pts[pts.length-1][1];
+}
+/* base: interpolate TOTALS, not rates (rate interpolation can make a bigger house cheaper) */
+function rateViaTotals(area, pts){
+  if(area <= pts[0][0]) return pts[0][1];
+  if(area >= pts[pts.length-1][0]) return pts[pts.length-1][1];
+  var totals = pts.map(function(p){ return [p[0], p[0]*p[1]]; });
+  return interpRate(area, totals) / area;
+}
+function uiEstimate(area, floors, pkg, carport, septic){
+  var pts = pkg==="base" ? M.base_points : pkg==="turnkey" ? M.turnkey_points : M.shell_points;
+  var band0 = pkg==="base" ? M.base_band : M.package_band;
+  var aMin = pts[0][0], aMax = pts[pts.length-1][0];
+  var over = area<aMin ? (aMin-area)/aMin : area>aMax ? (area-aMax)/aMax : 0;
+  var band = band0 + Math.min(0.05, over*0.1);
+  var mid = pkg==="base" ? rateViaTotals(area, pts) : interpRate(area, pts);
+  var opt = (carport ? M.options.carport : 0) + (septic ? M.options.septic : 0);
+  return { rateLo: mid*(1-band), rateHi: mid*(1+band), totLo: area*mid*(1-band)+opt, totHi: area*mid*(1+band)+opt,
+           constrMid: area*mid, optAdd: opt, extrapolated: over > 0, floors: normalizeFloors(floors) };
+}
+function steelKgPerM2(floors){ var fl = normalizeFloors(floors); return M.steel.kg_m2_at_2_floors + M.steel.joist_kg_m2 * ((fl-1)/fl - 1/2); }
+function foundationBasis(area, floors){
+  var fp = area / normalizeFloors(floors), t = M.foundation.slab;
+  var m3 = fp * t * M.foundation.footing, rebarKg = m3 * M.foundation.rebar_norm;
+  return Math.round(t*100) + " cm raft on a ~" + Math.round(fp) + " m2 footprint -> ~" + m3.toFixed(1) + " m3 of " + M.foundation.grade +
+    " concrete + ~" + (rebarKg/1000).toFixed(1) + " t of rebar + formwork, pour and pump";
+}
+function frameBasis(area, floors){
+  var fl = normalizeFloors(floors), kg = steelKgPerM2(fl), steelKg = area * kg;
+  return M.steel.grade + " steel, 150/89 mm sections, ~" + kg.toFixed(1) + " kg/m2 -> ~" + (steelKg/1000).toFixed(1) +
+    " t (material + factory assembly + erection" + (fl >= 2 ? " + intermediate floor" : "") + ")";
+}
+function facadeAreaM2(area, floors){
+  var fl = normalizeFloors(floors), fp = area / fl, r = M.facade.aspect;
+  return 2*Math.sqrt(fp)*(Math.sqrt(r)+1/Math.sqrt(r)) * M.facade.wall_h * fl * M.facade.openings;
+}
+function facadeBasis(area, floors){
+  var fl = normalizeFloors(floors);
+  return M.facade.thickness_mm + " mm mineral facade boards (non-combustible, " + M.facade.fire_class + "), ~" +
+    Math.round(facadeAreaM2(area, fl)) + " m2 of facade + ~" + Math.round(area/fl) + " m2 of roof";
+}
+/* END UI PRICE MODEL */
+
+/* ---------- State ---------- */
+var state = { area:150, floors:2, units:1, pkg:"turnkey", inputQuality:"manual", liveEstimates:null, source:"none" };
+var PKG_META = {
+  base:    { name:"Frame Package", sub:"frame + foundation + utilities" },
+  shell:   { name:"Shell Package",      sub:"warm shell" },
+  turnkey: { name:"Turnkey Package",  sub:"move-in ready" }
+};
+
+function $(id){ return document.getElementById(id); }
+function fmtEuro(n){ return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+function round1k(n){ return Math.round(n/1000)*1000; }
+function clampRange(v){ return Math.max(25, Math.min(600, v)); }
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function m2(s){ return escapeHtml(s).replace(/\bm2\b/g, "m²").replace(/\bm3\b/g, "m³").replace(/ -&gt; /g, " → "); }
+
+$("carportPrice").textContent = "+€" + fmtEuro(M.options.carport) + " (illustrative)";
+$("septicPrice").textContent = "+€" + fmtEuro(M.options.septic) + " (illustrative)";
+
+/* Input-quality widening: a photo or sketch gets a wider band on the page (presentation only). */
+function bandWiden(){ var q = state.inputQuality; return (q==="photo"||q==="sketch") ? 0.18 : q==="scan" ? 0.06 : 0; }
+function applyWiden(lo, hi){
+  var w = bandWiden(); if(!w) return [lo, hi];
+  var mid = (lo+hi)/2;
+  return [mid - (mid-lo)*(1+w) - mid*w*0.5, mid + (hi-mid)*(1+w) + mid*w*0.5];
+}
+
+function currentFor(pkg){
+  var carport = $("carport").checked, septic = $("septic").checked;
+  var live = state.liveEstimates && state.liveEstimates[pkg];
+  // Server numbers win while the extras match what the server priced; otherwise the inline mirror.
+  if(live && live.params.carport === carport && live.params.septic === septic){
+    return { rateLo:live.rateLo, rateHi:live.rateHi, totLo:live.totLo, totHi:live.totHi, optAdd:live.optAdd,
+             constrMid: live.totMid - live.optAdd, rows: live.breakdown, extrapolated: live.curve.extrapolated, notes: live.notes };
+  }
+  var e = uiEstimate(state.area, state.floors, pkg, carport, septic);
+  var rows = M.breakdown[pkg].map(function(r){
+    var detail = r.key==="foundation" ? foundationBasis(state.area, state.floors) : r.key==="frame" ? frameBasis(state.area, state.floors) :
+                 r.key==="facade" ? facadeBasis(state.area, state.floors) : "";
+    return { key:r.key, name:r.name, eur: Math.round(e.constrMid*r.pct/100/10)*10, detail: detail, disclaimer: detail ? M.disclaimer : "" };
+  });
+  if(carport) rows.push({ key:"carport", name:"Carport (option)", eur:M.options.carport });
+  if(septic)  rows.push({ key:"septic",  name:"Septic tank (option)", eur:M.options.septic });
+  return { rateLo:e.rateLo, rateHi:e.rateHi, totLo:e.totLo, totHi:e.totHi, optAdd:e.optAdd, constrMid:e.constrMid, rows:rows, extrapolated:e.extrapolated, notes:[] };
+}
+
+function animateTotal(el, lo, hi){
+  var sLo = el._lo || 0, sHi = el._hi || 0, t0 = performance.now(), dur = 520;
+  function step(now){
+    var k = Math.min(1,(now-t0)/dur), e = 1-Math.pow(1-k,3);
+    el.innerHTML = "≈ " + fmtEuro(round1k(sLo+(lo-sLo)*e)) + " - " + fmtEuro(round1k(sHi+(hi-sHi)*e)) + " <span class='cur'>€</span>";
+    if(k<1) requestAnimationFrame(step); else { el._lo=lo; el._hi=hi; }
+  }
+  requestAnimationFrame(step);
+}
+
+function render(){
+  var c = currentFor(state.pkg);
+  var w = applyWiden(c.totLo, c.totHi);
+  animateTotal($("total"), w[0], w[1]);
+  $("rate").innerHTML = "<b>" + Math.round(c.rateLo) + "-" + Math.round(c.rateHi) + " €/m²</b>" + (c.optAdd>0 ? " · extras +" + fmtEuro(c.optAdd) + " €" : "");
+  var q = state.inputQuality, msg;
+  if(c.extrapolated) msg = "Outside the anchor projects' size range: the band is wider than usual.";
+  else if(q==="clean_cad") msg = "Narrow band: the area was read from a clean drawing.";
+  else if(q==="scan") msg = "Area read from a scan: a slightly wider band.";
+  else if(q==="photo"||q==="sketch") msg = "Rough source: a very rough estimate with a wide band. A drawing gives a real number.";
+  else msg = "Entered by hand: an indicative band.";
+  $("approx").textContent = msg;
+
+  var totMid = (c.totLo + c.totHi)/2, html = "", max = 0;
+  c.rows.forEach(function(r){ max = Math.max(max, r.eur); });
+  c.rows.forEach(function(r){
+    var pct = Math.round(r.eur/totMid*1000)/10;
+    html += '<div class="bar"><div class="br"><span class="bn">'+escapeHtml(r.name)+'</span><span class="bv">'+pct+'% · <b>'+fmtEuro(r.eur)+' €</b></span></div>'
+      + '<div class="track"><div class="fill" data-w="'+(r.eur/max*100)+'"></div></div>'
+      + (r.detail ? '<div class="bd-detail">'+m2(r.detail)+'<span class="bd-disc">'+escapeHtml(r.disclaimer||M.disclaimer)+'</span></div>' : '')
+      + '</div>';
+  });
+  $("bars").innerHTML = html;
+  requestAnimationFrame(function(){
+    var fills = $("bars").querySelectorAll(".fill");
+    for(var j=0;j<fills.length;j++) fills[j].style.width = fills[j].getAttribute("data-w") + "%";
+  });
+  renderCompare();
+}
+
+function renderCompare(){
+  var html = "";
+  ["base","shell","turnkey"].forEach(function(pkg){
+    var c = currentFor(pkg), w = applyWiden(c.totLo, c.totHi), m = PKG_META[pkg];
+    html += '<div class="cmp-row'+(pkg===state.pkg?' active':'')+'"><span class="cn">'+m.name+'<small>'+m.sub+'</small></span>'
+      + '<span class="cv">≈ '+fmtEuro(round1k(w[0]))+' - '+fmtEuro(round1k(w[1]))+' €</span></div>';
+  });
+  $("cmpRows").innerHTML = html;
+}
+
+function accTier(){
+  var q = state.inputQuality;
+  if(q==="clean_cad") return { cls:"hi", txt:"High accuracy" };
+  if(q==="scan") return { cls:"mid", txt:"Medium accuracy" };
+  if(q==="photo"||q==="sketch") return { cls:"lo", txt:"Low accuracy" };
+  return { cls:"mid", txt:"Manual input" };
+}
+
+function renderProject(o){
+  $("projTitle").textContent = o.title;
+  $("projSrcTag").textContent = o.srcTag || "";
+  $("projBadge").className = "badge " + o.badgeClass;
+  $("projBadgeTxt").textContent = o.badgeTxt;
+  var acc = accTier();
+  $("projMeta").innerHTML =
+      '<div><div class="mk">Storeys</div><div class="mv">'+state.floors+'</div></div>'
+    + '<div><div class="mk">'+(state.units>1?"Units":"Blocks")+'</div><div class="mv">'+state.units+'</div></div>'
+    + (o.confidence!=null ? '<div><div class="mk">Confidence</div><div class="mv">'+Math.round(o.confidence*100)+'%</div></div>' : '')
+    + '<div><div class="mk">Accuracy</div><div class="mv"><span class="acc-pill '+acc.cls+'"><span class="dot"></span>'+acc.txt+'</span></div></div>';
+  $("projSource").innerHTML = o.source ? "<b style='font-weight:600'>Source:</b> " + m2(o.source) : "";
+  $("projChips").innerHTML = (o.chips||[]).map(function(x){ return '<span class="chip">'+m2(x)+'</span>'; }).join("")
+    + (o.extras||[]).map(function(x){ return '<span class="chip extra">'+m2(x)+'</span>'; }).join("");
+}
+
+function reveal(showNarr){
+  ["projCard","costCard","cta"].forEach(function(id){ $(id).classList.remove("hidden"); });
+  $("projCard").classList.add("reveal"); $("costCard").classList.add("reveal");
+  $("narrCard").classList.toggle("hidden", !showNarr);
+}
+
+function renderTrace(data){
+  var ex = data.extraction, est = data.estimates || [];
+  var tk = est.filter(function(e){ return e.package==="turnkey"; })[0];
+  var items = [
+    '<li class="code"><span class="who">code</span>Guards passed: base64, size, <b>magic bytes</b>, per-IP rate limit, concurrency</li>',
+    '<li><span class="who">model</span><code>report_extraction</code> → <b>'+ex.area_m2+' m²</b>, '+ex.floors+' storeys, confidence '+Math.round(ex.confidence*100)+'% (strict tool schema)</li>',
+    '<li><span class="who">model</span><code>estimate</code> × '+est.length+': base, shell, turnkey</li>',
+    '<li class="code"><span class="who">code</span>pricing.ts computes every euro'+(tk ? ': turnkey <b>€'+fmtEuro(tk.totLo)+' - €'+fmtEuro(tk.totHi)+'</b>' : '')+'</li>',
+    '<li><span class="who">model</span>writes the note from the tool results</li>',
+    (data.checks && data.checks.narrative_replaced)
+      ? '<li class="code"><span class="who">code</span>Price audit: the note named a price the code did not produce, so it was <b>replaced</b> by a code-written note</li>'
+      : '<li class="code"><span class="who">code</span>Price audit: every € figure in the note matches a computed number ✓</li>'
+  ];
+  if(data.checks && data.checks.injection_lines_removed) items.splice(2, 0, '<li class="code"><span class="who">code</span>Injection filter removed <b>'+data.checks.injection_lines_removed+'</b> instruction-like line(s) from the drawing text</li>');
+  $("trace").innerHTML = items.join("");
+  $("traceCard").classList.remove("hidden");
+}
+
+/* ---------- Analysis result (server or demo) ---------- */
+function showAnalysis(data){
+  clearError();
+  var ex = data.extraction;
+  state.liveEstimates = null;
+  if(data.estimates && data.estimates.length){
+    state.liveEstimates = {};
+    data.estimates.forEach(function(e){ state.liveEstimates[e.package] = e; });
+    $("carport").checked = !!data.estimates[0].params.carport;
+    $("septic").checked = !!data.estimates[0].params.septic;
+  }
+  if(!(ex && typeof ex.area_m2 === "number" && ex.area_m2 > 0)){
+    showError("The area could not be read reliably from this file. Upload a drawing with dimensions, or book a consultation and the architect will prepare an exact estimate.");
+    return;
+  }
+  var demo = data.mode === "demo";
+  state.source = demo ? "demo" : "live";
+  state.area = ex.area_m2; state.floors = ex.floors || 1; state.units = ex.units || 1;
+  state.inputQuality = ex.input_quality || "scan";
+  $("areaNum").value = ex.area_m2; $("areaRange").value = clampRange(ex.area_m2);
+  renderProject({
+    title: data.filename || "Your drawing",
+    srcTag: demo ? "fictional demo drawing" : "uploaded file",
+    badgeClass: demo ? "example" : "read",
+    badgeTxt: demo ? "demo replay" : "read by Claude",
+    source: ex.area_source, confidence: ex.confidence, chips: ex.rooms, extras: ex.extras
+  });
+  var mb = $("modebar");
+  if(data.demo_note){ mb.textContent = data.demo_note; mb.classList.add("show"); } else mb.classList.remove("show");
+  $("narrBody").innerHTML = m2(data.narrative || "");
+  $("narrBy").textContent = demo ? "Acme Steel Homes estimator · replayed (demo mode)" : "Acme Steel Homes estimator · Claude";
+  reveal(!!data.narrative);
+  renderTrace(data);
+  render();
+}
+
+/* ---------- Progress, errors ---------- */
+var progressTimer = null;
+function showProgress(){
+  clearError();
+  var steps = document.querySelectorAll(".pstep"), i = 0;
+  function paint(){ for(var k=0;k<steps.length;k++){ steps[k].className = "pstep" + (k<i ? " done" : k===i ? " active" : ""); } }
+  paint(); $("progress").classList.add("show");
+  progressTimer = setInterval(function(){ if(i < steps.length-1){ i++; paint(); } }, 900);
+}
+function hideProgress(){ if(progressTimer){ clearInterval(progressTimer); progressTimer = null; } $("progress").classList.remove("show"); }
+function showError(msg){ hideProgress(); $("errmsg").innerHTML = msg; $("errmsg").classList.add("show"); }
+function clearError(){ $("errmsg").classList.remove("show"); }
+
+/* ---------- Upload ---------- */
+var EXT_MIME = { pdf:"application/pdf", png:"image/png", jpg:"image/jpeg", jpeg:"image/jpeg", webp:"image/webp", gif:"image/gif" };
+function detectMime(file){
+  if(file.type && /^(application\/pdf|image\/(png|jpeg|webp|gif))$/.test(file.type)) return file.type;
+  return EXT_MIME[(file.name.split(".").pop() || "").toLowerCase()] || null;
+}
+function readAsBase64(file){
+  return new Promise(function(resolve, reject){
+    var r = new FileReader();
+    r.onload = function(){ var s = String(r.result||""), c = s.indexOf(","); resolve(c >= 0 ? s.slice(c+1) : s); };
+    r.onerror = function(){ reject(new Error("read error")); };
+    r.readAsDataURL(file);
+  });
+}
+function handleFile(file){
+  if(!file) return;
+  var mime = detectMime(file);
+  if(!mime){ showError("PDF, PNG, JPG, WebP and GIF are supported."); return; }
+  if(file.size > 25*1024*1024){ showError("The file is over 25 MB. Compress the drawing or upload the plan sheet only."); return; }
+  showProgress();
+  readAsBase64(file).then(function(b64){
+    return fetch("/api/analyze", { method:"POST", headers:{ "content-type":"application/json" }, body: JSON.stringify({ fileBase64:b64, mediaType:mime, filename:file.name }) });
+  }).then(function(res){ return res.json().then(function(d){ return { ok:res.ok, data:d }; }); })
+  .then(function(r){
+    hideProgress();
+    if(!r.ok){ showError((r.data && r.data.error) || "The server returned an error. Please try again."); return; }
+    if(r.data.mode !== "demo") r.data.filename = file.name;
+    showAnalysis(r.data);
+  }).catch(function(){
+    hideProgress();
+    showError("The server is not running. Start it with <code>npm run estimate</code> (no key needed: it starts in demo mode), or use the demo drawing.");
+  });
+}
+var drop = $("drop"), fileInput = $("file");
+drop.addEventListener("click", function(){ fileInput.click(); });
+fileInput.addEventListener("change", function(){ if(this.files && this.files[0]) handleFile(this.files[0]); });
+["dragenter","dragover"].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add("drag"); }); });
+drop.addEventListener("dragleave", function(e){ e.preventDefault(); drop.classList.remove("drag"); });
+drop.addEventListener("drop", function(e){
+  e.preventDefault(); drop.classList.remove("drag");
+  var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if(f) handleFile(f);
+});
+
+/* ---------- Demo: the full loop on the server (replayed model), or the inline mirror without a server ---------- */
+$("demoBtn").addEventListener("click", function(){
+  showProgress();
+  fetch("/api/demo").then(function(r){ if(!r.ok) throw new Error(); return r.json(); })
+  .then(function(d){ hideProgress(); showAnalysis(d); })
+  .catch(function(){
+    hideProgress();
+    showAnalysis({ mode:"demo", filename:"demo-house.pdf", extraction: DEMO_FIXTURE.extraction, estimates: [],
+      demo_note:"Offline: no server, so the page prices the demo extraction with its inline copy of the model. Run npm run estimate for the full loop and the note.",
+      narrative:"" });
+    $("traceCard").classList.add("hidden");
+  });
+});
+
+/* ---------- Manual edits ---------- */
+function setArea(v){
+  v = parseFloat(v); if(isNaN(v)) return;
+  state.area = v;
+  if(state.source !== "manual"){
+    state.source = "manual"; state.inputQuality = "manual"; state.liveEstimates = null;
+    renderProject({ title:"Manual input", srcTag:"area set by hand", badgeClass:"manual", badgeTxt:"manual", source:"area entered by the user" });
+    $("narrCard").classList.add("hidden"); $("traceCard").classList.add("hidden");
+  }
+  render();
+}
+$("areaNum").addEventListener("input", function(){ $("areaRange").value = clampRange(parseFloat(this.value)||25); setArea(this.value); });
+$("areaRange").addEventListener("input", function(){ $("areaNum").value = this.value; setArea(this.value); });
+$("seg").addEventListener("click", function(e){
+  var btn = e.target.closest("button"); if(!btn) return;
+  state.pkg = btn.getAttribute("data-pkg");
+  var all = this.querySelectorAll("button"); for(var i=0;i<all.length;i++) all[i].classList.toggle("on", all[i]===btn);
+  render();
+});
+$("carport").addEventListener("change", render);
+$("septic").addEventListener("change", render);
+$("bdToggle").addEventListener("click", function(){
+  var open = $("bdBody").classList.toggle("open");
+  this.classList.toggle("open", open); this.setAttribute("aria-expanded", open ? "true" : "false");
+  if(open) render();
+});
+$("cta").addEventListener("click", function(){ $("modalBg").classList.add("show"); });
+$("modalX").addEventListener("click", function(){ $("modalBg").classList.remove("show"); });
+$("modalBg").addEventListener("click", function(e){ if(e.target===this) this.classList.remove("show"); });
+document.addEventListener("keydown", function(e){ if(e.key==="Escape") $("modalBg").classList.remove("show"); });
+if(location.protocol === "file:") $("demoPdf").classList.add("hidden");
+</script>
+</body>
+</html>

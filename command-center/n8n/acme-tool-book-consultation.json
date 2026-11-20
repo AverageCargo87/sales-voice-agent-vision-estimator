@@ -1,0 +1,293 @@
+{
+  "name": "Acme - Tool: book_consultation",
+  "nodes": [
+    {
+      "id": "cff8f93b-f9e5-43ff-92cf-c91f9de04bf7",
+      "name": "Webhook book_consultation",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "book-consultation",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      }
+    },
+    {
+      "id": "04d165a1-d69b-44c0-8336-e7ef1deee975",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\":\"ok\"}"
+      }
+    },
+    {
+      "id": "bd3eceb9-2a7f-4a70-a338-d94729f61105",
+      "name": "Normalize",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "full_name",
+              "name": "full_name",
+              "value": "={{ $(\"Webhook book_consultation\").item.json.body?.full_name ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "name": "phone",
+              "value": "={{ $(\"Webhook book_consultation\").item.json.body?.phone ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "name": "email",
+              "value": "={{ $(\"Webhook book_consultation\").item.json.body?.email ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "preferred_datetime",
+              "name": "preferred_datetime",
+              "value": "={{ $(\"Webhook book_consultation\").item.json.body?.preferred_datetime ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "meeting_type",
+              "name": "meeting_type",
+              "value": "={{ $(\"Webhook book_consultation\").item.json.body?.meeting_type ?? \"online\" }}",
+              "type": "string"
+            },
+            {
+              "id": "segment",
+              "name": "segment",
+              "value": "={{ $(\"Webhook book_consultation\").item.json.body?.segment ?? \"unknown\" }}",
+              "type": "string"
+            },
+            {
+              "id": "language",
+              "name": "language",
+              "value": "={{ $(\"Webhook book_consultation\").item.json.body?.language ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "project_brief",
+              "name": "project_brief",
+              "value": "={{ $(\"Webhook book_consultation\").item.json.body?.project_brief ?? \"\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false
+      }
+    },
+    {
+      "id": "b63e29c0-2b2f-4280-a58b-1ff8b24f64a6",
+      "name": "Append Booking",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        0
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "<DOCUMENTID>"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Bookings"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "booking_id": "={{ $('Normalize').item.json.phone }}",
+            "created_at": "={{ $now.toISO() }}",
+            "full_name": "={{ $(\"Normalize\").item.json.full_name }}",
+            "phone": "={{ $(\"Normalize\").item.json.phone }}",
+            "email": "={{ $(\"Normalize\").item.json.email }}",
+            "preferred_datetime": "={{ $(\"Normalize\").item.json.preferred_datetime }}",
+            "meeting_type": "={{ $(\"Normalize\").item.json.meeting_type }}",
+            "segment": "={{ $(\"Normalize\").item.json.segment }}",
+            "project_brief": "={{ $(\"Normalize\").item.json.project_brief }}",
+            "language": "={{ $(\"Normalize\").item.json.language }}",
+            "status": "requested",
+            "calendar_event_id": ""
+          },
+          "schema": [
+            {
+              "id": "booking_id",
+              "displayName": "booking_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "preferred_datetime",
+              "displayName": "preferred_datetime",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "meeting_type",
+              "displayName": "meeting_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "segment",
+              "displayName": "segment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "project_brief",
+              "displayName": "project_brief",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "language",
+              "displayName": "language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "calendar_event_id",
+              "displayName": "calendar_event_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook book_consultation": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond OK": {
+      "main": [
+        [
+          {
+            "node": "Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize": {
+      "main": [
+        [
+          {
+            "node": "Append Booking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  }
+}

@@ -1,0 +1,8 @@
+# LF everywhere, also on Windows clones with core.autocrlf=true: the prompt and the
+# knowledge base are sent to the API byte for byte, and the documented dry-run sizes assume LF.
+* text=auto eol=lf
+
+*.png binary
+*.gif binary
+*.jpg binary
+*.pdf binary

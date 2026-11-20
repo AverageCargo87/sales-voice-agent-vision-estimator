@@ -1,0 +1,19 @@
+{
+  "id": "olive-grove-demo",
+  "label": "Olive Grove House (fictional demo drawing)",
+  "filename": "demo-house.pdf",
+  "extraction": {
+    "area_m2": 186.4,
+    "floors": 2,
+    "units": 1,
+    "area_source": "Floor totals printed on the plans: ground floor 98.6 m2 + first floor 87.8 m2",
+    "input_quality": "clean_cad",
+    "confidence": 0.93,
+    "rooms": ["open-plan kitchen and living room", "4 bedrooms", "3 bathrooms", "study", "utility room", "guest WC"],
+    "extras": ["covered terrace ~24 m2", "two balconies", "swimming pool (not priced)"],
+    "has_garage": false
+  },
+  "carport": false,
+  "septic": false,
+  "narrative": "The drawing shows a two-storey family house of about {{area}} m2 (ground floor 98.6 m2 plus first floor 87.8 m2, read from the floor totals), with four bedrooms, three bathrooms and a study. Built as Turnkey Package it comes out at roughly {{turnkey.lo}} to {{turnkey.hi}}, excluding VAT; the warm Shell Package without finishes would be {{shell.lo}} to {{shell.hi}}. Not included: the swimming pool, a septic tank and landscaping, and the covered terrace can move the final figure. The foundation and frame quantities in the breakdown need current market prices and a design to local codes. This is an indicative estimate: a free consultation with the architect turns it into an exact one."
+}
